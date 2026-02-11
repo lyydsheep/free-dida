@@ -1,0 +1,308 @@
+<!doctype html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Free-Dida | Minimalist Calendar Board</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#000000",
+              accent: "#000000",
+              "background-light": "#ffffff",
+              "background-dark": "#000000",
+              muted: "#737373",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .column-width {
+          min-width: 280px;
+          max-width: 280px;
+        }
+      }
+      :focus-visible {
+        outline: 2px solid #000000;
+        outline-offset: 2px;
+      }
+    </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-black font-sans text-primary dark:text-white antialiased overflow-hidden"
+  >
+    <div
+      class="flex flex-col h-screen max-w-md mx-auto bg-background-light dark:bg-black relative"
+    >
+      <header class="pt-14 pb-4 px-8 sticky top-0 z-20">
+        <div class="flex justify-between items-end mb-8">
+          <div>
+            <p
+              class="text-[10px] font-bold uppercase tracking-[0.25em] text-muted mb-1"
+            >
+              Schedule
+            </p>
+            <h1 class="text-3xl font-light tracking-tight">Calendar</h1>
+          </div>
+          <button
+            aria-label="Current date"
+            class="text-[11px] font-bold uppercase tracking-widest border border-black dark:border-white px-4 py-1.5 rounded-none hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+          >
+            Today
+          </button>
+        </div>
+        <div
+          class="flex gap-8 overflow-x-auto no-scrollbar border-b border-neutral-100 dark:border-neutral-900"
+        >
+          <button
+            class="pb-3 text-[11px] font-bold uppercase tracking-widest border-b-2 border-primary dark:border-white"
+          >
+            Board
+          </button>
+          <button
+            class="pb-3 text-[11px] font-bold uppercase tracking-widest text-muted hover:text-primary dark:hover:text-white transition-colors"
+          >
+            Agenda
+          </button>
+          <button
+            class="pb-3 text-[11px] font-bold uppercase tracking-widest text-muted hover:text-primary dark:hover:text-white transition-colors"
+          >
+            Monthly
+          </button>
+        </div>
+      </header>
+      <main
+        class="flex-1 overflow-x-auto no-scrollbar flex px-8 gap-12 scroll-smooth"
+      >
+        <section class="column-width flex flex-col h-full">
+          <header class="mb-10">
+            <div
+              class="flex items-baseline justify-between border-b border-neutral-100 dark:border-neutral-900 pb-2"
+            >
+              <h2 class="text-sm font-semibold tracking-tight uppercase">
+                Feb 10 <span class="font-light text-muted ml-1">Tue</span>
+              </h2>
+              <span
+                class="text-[10px] text-muted font-medium uppercase tracking-tighter"
+                >3 Tasks</span
+              >
+            </div>
+          </header>
+          <div class="flex-1 space-y-10 overflow-y-auto no-scrollbar">
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  Sync with Design Team
+                </h3>
+              </div>
+              <p class="pl-4.5 text-[11px] text-muted ml-4.5">10:30 AM</p>
+            </article>
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  Weekly Retrospective
+                </h3>
+              </div>
+              <p class="text-[11px] text-muted ml-4.5">02:00 PM</p>
+            </article>
+            <article class="flex flex-col gap-1 opacity-30" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug line-through">
+                  Review PR #452
+                </h3>
+              </div>
+            </article>
+            <button
+              class="w-full py-4 flex items-center justify-center text-muted hover:text-primary dark:hover:text-white transition-all"
+            >
+              <span class="material-symbols-outlined font-light">add</span>
+            </button>
+          </div>
+        </section>
+        <section class="column-width flex flex-col h-full">
+          <header class="mb-10">
+            <div
+              class="flex items-baseline justify-between border-b border-black dark:border-white pb-2"
+            >
+              <h2 class="text-sm font-bold tracking-tight uppercase">
+                Feb 11 <span class="font-light text-muted ml-1">Today</span>
+              </h2>
+              <span
+                class="text-[10px] text-primary dark:text-white font-bold uppercase tracking-tighter"
+                >4 Tasks</span
+              >
+            </div>
+          </header>
+          <div class="flex-1 space-y-10 overflow-y-auto no-scrollbar">
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"
+                ></span>
+                <h3 class="text-sm font-bold leading-snug">
+                  Submit Accessibility Audit
+                </h3>
+              </div>
+              <p class="text-[11px] text-muted ml-4.5">09:00 AM • Urgent</p>
+            </article>
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  User Testing Session
+                </h3>
+              </div>
+              <p class="text-[11px] text-muted ml-4.5">with Alex Rivers</p>
+            </article>
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  Draft Board Variants
+                </h3>
+              </div>
+            </article>
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  Update documentation
+                </h3>
+              </div>
+            </article>
+            <button
+              class="w-full py-4 flex items-center justify-center text-muted hover:text-primary dark:hover:text-white transition-all"
+            >
+              <span class="material-symbols-outlined font-light">add</span>
+            </button>
+          </div>
+        </section>
+        <section class="column-width flex flex-col h-full">
+          <header class="mb-10">
+            <div
+              class="flex items-baseline justify-between border-b border-neutral-100 dark:border-neutral-900 pb-2"
+            >
+              <h2 class="text-sm font-semibold tracking-tight uppercase">
+                Feb 12 <span class="font-light text-muted ml-1">Thu</span>
+              </h2>
+              <span
+                class="text-[10px] text-muted font-medium uppercase tracking-tighter"
+                >1 Task</span
+              >
+            </div>
+          </header>
+          <div class="flex-1 space-y-10 overflow-y-auto no-scrollbar">
+            <article class="flex flex-col gap-1" tabindex="0">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                ></span>
+                <h3 class="text-sm font-medium leading-snug">
+                  A11y Checkpoint Call
+                </h3>
+              </div>
+            </article>
+            <button
+              class="w-full py-4 flex items-center justify-center text-muted hover:text-primary dark:hover:text-white transition-all"
+            >
+              <span class="material-symbols-outlined font-light">add</span>
+            </button>
+          </div>
+        </section>
+      </main>
+      <nav
+        class="pb-10 pt-4 px-8 flex justify-between items-center bg-white dark:bg-black border-t border-neutral-100 dark:border-neutral-900"
+      >
+        <button
+          class="flex flex-col items-center gap-1.5 text-muted hover:text-primary dark:hover:text-white transition-colors"
+        >
+          <span class="material-symbols-outlined text-2xl font-light"
+            >format_list_bulleted</span
+          >
+          <span class="text-[9px] font-bold uppercase tracking-widest"
+            >List</span
+          >
+        </button>
+        <button
+          class="flex flex-col items-center gap-1.5 text-primary dark:text-white"
+        >
+          <span class="material-symbols-outlined text-2xl font-normal"
+            >calendar_today</span
+          >
+          <span class="text-[9px] font-bold uppercase tracking-widest"
+            >Calendar</span
+          >
+        </button>
+        <button
+          class="flex flex-col items-center gap-1.5 text-muted hover:text-primary dark:hover:text-white transition-colors"
+        >
+          <span class="material-symbols-outlined text-2xl font-light"
+            >grid_view</span
+          >
+          <span class="text-[9px] font-bold uppercase tracking-widest"
+            >Matrix</span
+          >
+        </button>
+        <button
+          class="flex flex-col items-center gap-1.5 text-muted hover:text-primary dark:hover:text-white transition-colors"
+        >
+          <span class="material-symbols-outlined text-2xl font-light"
+            >settings</span
+          >
+          <span class="text-[9px] font-bold uppercase tracking-widest"
+            >Settings</span
+          >
+        </button>
+      </nav>
+    </div>
+  </body>
+</html>
