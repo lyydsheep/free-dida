@@ -23,6 +23,9 @@ export interface Task {
   // 子任务
   checklist?: SubTask[];
 
+  // 标签
+  tags?: string[];
+
   // 元数据
   createdAt: number;
   updatedAt: number;

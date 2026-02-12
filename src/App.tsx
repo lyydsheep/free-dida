@@ -1,8 +1,9 @@
-import { CalendarView } from "@/components/CalendarView";
+import { CalendarView, CalendarViewHandle } from "@/components/CalendarView";
 import { MatrixView } from "@/components/MatrixView";
 import { TaskDetail } from "@/components/TaskDetail";
 import { TaskInput } from "@/components/TaskInput";
 import { TaskItem } from "@/components/TaskItem";
+import { TaskSearch } from "@/components/TaskSearch";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Task } from "@/types/todo";
 import {
@@ -21,18 +22,37 @@ import {
 } from "@dnd-kit/sortable";
 import clsx from "clsx";
 import { format, isToday, isTomorrow } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type GroupBy = "priority" | "date";
 type View = "list" | "calendar" | "matrix";
 
 function App() {
-  const { tasks, reorderTasks, updateTask, cleanupCompletedTasks } =
-    useTaskStore();
+  const {
+    tasks,
+    reorderTasks,
+    updateTask,
+    moveTask,
+    cleanupCompletedTasks,
+    searchQuery,
+  } = useTaskStore();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState<GroupBy>("priority");
   const [view, setView] = useState<View>("list");
   const calendarScrollRef = useRef<HTMLDivElement>(null);
+  const calendarViewRef = useRef<CalendarViewHandle>(null);
+
+  // Memoize task click handler to prevent unnecessary re-renders of TaskItem
+  const handleTaskClick = useCallback((taskId: string) => {
+    setSelectedTaskId(taskId);
+  }, []);
+
+  // Filter tasks based on search query
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) return tasks;
+    const query = searchQuery.toLowerCase().trim();
+    return tasks.filter((task) => task.title.toLowerCase().includes(query));
+  }, [tasks, searchQuery]);
 
   useEffect(() => {
     cleanupCompletedTasks();
@@ -51,7 +71,7 @@ function App() {
 
   const groupedTasks = useMemo(() => {
     const groups: { [key: string]: Task[] } = {};
-    const todoTasks = tasks.filter((t) => t.status === "todo");
+    const todoTasks = filteredTasks.filter((t) => t.status === "todo");
 
     todoTasks.forEach((task) => {
       let key = "其他";
@@ -100,7 +120,54 @@ function App() {
     });
 
     return sortedKeys.map((key) => ({ title: key, tasks: groups[key] }));
-  }, [tasks, groupBy]);
+  }, [filteredTasks, groupBy]);
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    const activeTask = tasks.find((t) => t.id === activeId);
+    const overTask = tasks.find((t) => t.id === overId);
+
+    if (!activeTask || !overTask) return;
+
+    let updates: Partial<Task> | undefined;
+
+    if (groupBy === "priority") {
+      if (activeTask.priority !== overTask.priority) {
+        updates = { priority: overTask.priority };
+      }
+    } else {
+      if (activeTask.dueDate !== overTask.dueDate) {
+        updates = { dueDate: overTask.dueDate };
+      }
+    }
+
+    if (updates) {
+      const currentVisualIds = groupedTasks.flatMap((g) =>
+        g.tasks.map((t) => t.id),
+      );
+      const oldIndex = currentVisualIds.indexOf(activeId);
+      const newIndex = currentVisualIds.indexOf(overId);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrderIds = [...currentVisualIds];
+        newOrderIds.splice(oldIndex, 1);
+        newOrderIds.splice(newIndex, 0, activeId);
+
+        const completedTaskIds = tasks
+          .filter((t) => t.status === "completed")
+          .map((t) => t.id);
+
+        const allNewOrderIds = [...newOrderIds, ...completedTaskIds];
+
+        moveTask(activeId, allNewOrderIds, updates);
+      }
+    }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -130,68 +197,84 @@ function App() {
       const completedTaskIds = tasks
         .filter((t) => t.status === "completed")
         .map((t) => t.id);
-      reorderTasks([...newOrderIds, ...completedTaskIds]);
-    }
 
-    // Handle property updates
-    if (groupBy === "priority") {
-      if (activeTask.priority !== overTask.priority) {
-        updateTask(activeId, { priority: overTask.priority });
+      const allNewOrderIds = [...newOrderIds, ...completedTaskIds];
+
+      // Handle property updates and reordering in a single action
+      let updates: Partial<Task> | undefined;
+      if (groupBy === "priority") {
+        if (activeTask.priority !== overTask.priority) {
+          updates = { priority: overTask.priority };
+        }
+      } else {
+        if (activeTask.dueDate !== overTask.dueDate) {
+          updates = { dueDate: overTask.dueDate };
+        }
       }
-    } else {
-      if (activeTask.dueDate !== overTask.dueDate) {
-        updateTask(activeId, { dueDate: overTask.dueDate });
+
+      if (updates) {
+        moveTask(activeId, allNewOrderIds, updates);
+      } else {
+        reorderTasks(allNewOrderIds);
       }
     }
   };
 
   const handleScrollToToday = () => {
-    if (calendarScrollRef.current) {
-      const todayEl = calendarScrollRef.current.querySelector(
-        '[data-is-today="true"]',
-      );
-      if (todayEl) {
-        todayEl.scrollIntoView({ inline: "center", behavior: "smooth" });
-      }
-    }
+    calendarViewRef.current?.scrollToToday();
   };
 
-  const completedTasks = tasks.filter((t) => t.status === "completed");
+  const completedTasks = filteredTasks.filter((t) => t.status === "completed");
+  const hasNoResults = filteredTasks.length === 0 && searchQuery.trim() !== "";
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-100 sm:py-10 font-sans text-slate-900">
       <div className="w-full sm:max-w-[400px] bg-white flex flex-col relative h-[100dvh] sm:h-[800px] sm:rounded-[3rem] overflow-hidden shadow-2xl sm:border-[8px] border-slate-900">
-        <header className="sticky top-0 z-30 px-6 pt-14 pb-4 bg-white/80 backdrop-blur-xl flex items-end justify-between border-b border-slate-50">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-            {view === "list" ? "任务" : view === "calendar" ? "日历" : "矩阵"}
-          </h1>
-          <div className="flex items-center gap-2 mb-1">
-            {view === "list" && (
-              <button
-                onClick={() =>
-                  setGroupBy((g) => (g === "priority" ? "date" : "priority"))
-                }
-                className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 transition-colors"
-              >
-                {groupBy === "priority" ? "按日期分组" : "按优先级分组"}
-              </button>
-            )}
-            {view === "calendar" && (
-              <button
-                onClick={handleScrollToToday}
-                className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
-              >
-                返回今日
-              </button>
-            )}
+        <header className="sticky top-0 z-30 px-6 pt-14 pb-4 bg-white/80 backdrop-blur-xl border-b border-slate-50">
+          <div className="flex items-end justify-between mb-4">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+              {view === "list" ? "任务" : view === "calendar" ? "日历" : "矩阵"}
+            </h1>
+            <div className="flex items-center gap-2 mb-1">
+              {view === "list" && (
+                <button
+                  onClick={() =>
+                    setGroupBy((g) => (g === "priority" ? "date" : "priority"))
+                  }
+                  className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 transition-colors"
+                >
+                  {groupBy === "priority" ? "按日期分组" : "按优先级分组"}
+                </button>
+              )}
+              {view === "calendar" && (
+                <button
+                  onClick={handleScrollToToday}
+                  className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                >
+                  返回今日
+                </button>
+              )}
+            </div>
           </div>
+          <TaskSearch />
         </header>
 
         <main className="flex-1 overflow-hidden flex flex-col relative bg-white">
-          {view === "list" ? (
+          {hasNoResults ? (
+            <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+              <span className="material-symbols-outlined text-[48px] text-slate-300 mb-3">
+                search_off
+              </span>
+              <p className="text-slate-500 text-sm">
+                未找到包含 "{searchQuery}" 的任务
+              </p>
+              <p className="text-slate-400 text-xs mt-1">请尝试其他关键词</p>
+            </div>
+          ) : view === "list" ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              onDragOver={handleDragOver}
               onDragEnd={handleDragEnd}
             >
               <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-2 pb-32">
@@ -214,7 +297,7 @@ function App() {
                           <TaskItem
                             key={task.id}
                             task={task}
-                            onClick={() => setSelectedTaskId(task.id)}
+                            onTaskClick={handleTaskClick}
                             isSortable
                           />
                         ))}
@@ -238,7 +321,7 @@ function App() {
                         <TaskItem
                           key={task.id}
                           task={task}
-                          onClick={() => setSelectedTaskId(task.id)}
+                          onTaskClick={handleTaskClick}
                           isSortable={false}
                         />
                       ))}
@@ -249,11 +332,13 @@ function App() {
             </DndContext>
           ) : view === "calendar" ? (
             <CalendarView
-              onTaskClick={setSelectedTaskId}
+              ref={calendarViewRef}
+              onTaskClick={handleTaskClick}
               scrollRef={calendarScrollRef}
+              tasks={filteredTasks}
             />
           ) : (
-            <MatrixView onTaskClick={setSelectedTaskId} />
+            <MatrixView onTaskClick={handleTaskClick} tasks={filteredTasks} />
           )}
         </main>
 

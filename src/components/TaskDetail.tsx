@@ -1,12 +1,32 @@
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskPriority } from "@/types/todo";
 import clsx from "clsx";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface TaskDetailProps {
   taskId: string;
   onClose: () => void;
 }
+
+// 预定义标签颜色
+const tagColors = [
+  { bg: "bg-blue-50", text: "text-blue-600" },
+  { bg: "bg-green-50", text: "text-green-600" },
+  { bg: "bg-purple-50", text: "text-purple-600" },
+  { bg: "bg-orange-50", text: "text-orange-600" },
+  { bg: "bg-pink-50", text: "text-pink-600" },
+  { bg: "bg-cyan-50", text: "text-cyan-600" },
+  { bg: "bg-indigo-50", text: "text-indigo-600" },
+  { bg: "bg-teal-50", text: "text-teal-600" },
+];
+
+const getTagColor = (tag: string) => {
+  let hash = 0;
+  for (let i = 0; i < tag.length; i++) {
+    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return tagColors[Math.abs(hash) % tagColors.length];
+};
 
 export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
   const {
@@ -17,12 +37,39 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
     deleteSubTask,
     deleteTask,
     toggleTaskStatus,
+    addTaskTag,
+    removeTaskTag,
   } = useTaskStore();
   const task = tasks.find((t) => t.id === taskId);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [newSubTaskTitle, setNewSubTaskTitle] = useState("");
+  const [newTag, setNewTag] = useState("");
+  const [isTagInputFocused, setIsTagInputFocused] = useState(false);
+
+  // 获取所有已存在的标签
+  const existingTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    tasks.forEach((t) => {
+      t.tags?.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [tasks]);
+
+  // 过滤出未使用的标签
+  const availableTags = useMemo(() => {
+    const currentTags = new Set(task?.tags || []);
+    return existingTags.filter((tag) => !currentTags.has(tag));
+  }, [existingTags, task?.tags]);
+
+  // 过滤标签（用于搜索）
+  const filteredAvailableTags = useMemo(() => {
+    if (!newTag.trim()) return availableTags;
+    return availableTags.filter((tag) =>
+      tag.toLowerCase().includes(newTag.toLowerCase())
+    );
+  }, [availableTags, newTag]);
 
   useEffect(() => {
     if (task) {
@@ -42,6 +89,22 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
       addSubTask(taskId, newSubTaskTitle.trim());
       setNewSubTaskTitle("");
     }
+  };
+
+  const handleAddTag = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && newTag.trim()) {
+      const trimmedTag = newTag.trim();
+      if (!task?.tags?.includes(trimmedTag)) {
+        addTaskTag(taskId, trimmedTag);
+      }
+      setNewTag("");
+      e.preventDefault();
+    }
+  };
+
+  const handleSelectExistingTag = (tag: string) => {
+    addTaskTag(taskId, tag);
+    setNewTag("");
   };
 
   const priorities: TaskPriority[] = ["p0", "p1", "p2", "none"];
@@ -97,6 +160,86 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
               className="w-full min-h-[100px] text-sm text-slate-700 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-blue-500"
               placeholder="添加详情..."
             />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
+              标签
+            </label>
+            <div className="space-y-2">
+              {/* Current tags */}
+              <div className="flex flex-wrap gap-2">
+                {task.tags?.map((tag) => {
+                  const color = getTagColor(tag);
+                  return (
+                    <span
+                      key={tag}
+                      className={clsx(
+                        "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium",
+                        color.bg,
+                        color.text
+                      )}
+                    >
+                      {tag}
+                      <button
+                        onClick={() => removeTaskTag(taskId, tag)}
+                        className="hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                      >
+                        <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+                          <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              {/* Tag input */}
+              <div className="relative">
+                <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                  <span className="material-symbols-outlined text-slate-400 text-[18px]">
+                    label
+                  </span>
+                  <input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    onFocus={() => setIsTagInputFocused(true)}
+                    onBlur={() => setTimeout(() => setIsTagInputFocused(false), 200)}
+                    placeholder="添加标签，按回车确认"
+                    className="flex-1 text-sm bg-transparent border-none p-0 focus:ring-0 placeholder:text-slate-400 outline-none"
+                  />
+                </div>
+                {/* Available tags dropdown */}
+                {isTagInputFocused && filteredAvailableTags.length > 0 && (
+                  <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    <div className="p-2">
+                      <span className="text-xs text-slate-400 block mb-1.5 px-1">
+                        已有标签
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {filteredAvailableTags.map((tag) => {
+                          const color = getTagColor(tag);
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => handleSelectExistingTag(tag)}
+                              className={clsx(
+                                "px-2 py-1 rounded-full text-xs font-medium transition-all hover:scale-105",
+                                color.bg,
+                                color.text
+                              )}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Priority */}

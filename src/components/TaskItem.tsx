@@ -8,12 +8,12 @@ import React, { useEffect, useRef, useState } from "react";
 
 interface TaskItemProps {
   task: Task;
-  onClick?: () => void;
+  onTaskClick?: (taskId: string) => void;
   isSortable?: boolean;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = React.memo(
-  ({ task, onClick, isSortable = false }) => {
+  ({ task, onTaskClick, isSortable = false }) => {
     const { toggleTaskStatus, updateTask } = useTaskStore();
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.title);
@@ -117,7 +117,7 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(
           className="flex-1 ml-4 flex items-center border-b border-slate-100 pb-3.5 group-last:border-none cursor-pointer"
           onClick={() => {
             if (!isEditing) {
-              onClick?.();
+              onTaskClick?.(task.id);
             }
           }}
         >
@@ -170,12 +170,31 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(
                   </span>
                 )}
               </div>
-              {task.checklist && task.checklist.length > 0 && (
-                <span className="text-xs text-slate-400 mt-0.5">
-                  {task.checklist.filter((t) => t.done).length}/
-                  {task.checklist.length}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5 mt-1">
+                {task.tags && task.tags.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {task.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {task.tags.length > 3 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                        +{task.tags.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {task.checklist && task.checklist.length > 0 && (
+                  <span className="text-xs text-slate-400">
+                    {task.checklist.filter((t) => t.done).length}/
+                    {task.checklist.length}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>

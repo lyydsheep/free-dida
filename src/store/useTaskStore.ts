@@ -21,6 +21,8 @@ const storage: StateStorage = {
 
 interface TaskState {
   tasks: Task[];
+  searchQuery: string;
+  selectedTag: string | null;
   addTask: (task: Partial<Task>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -29,13 +31,25 @@ interface TaskState {
   toggleSubTask: (taskId: string, subTaskId: string) => void;
   deleteSubTask: (taskId: string, subTaskId: string) => void;
   reorderTasks: (taskIds: string[]) => void;
+  moveTask: (
+    taskId: string,
+    newOrderIds: string[],
+    updates?: Partial<Task>,
+  ) => void;
   cleanupCompletedTasks: () => void;
+  setSearchQuery: (query: string) => void;
+  setSelectedTag: (tag: string | null) => void;
+  addTaskTag: (taskId: string, tag: string) => void;
+  removeTaskTag: (taskId: string, tag: string) => void;
+  setTaskTags: (taskId: string, tags: string[]) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
   persist(
     (set) => ({
       tasks: [],
+      searchQuery: "",
+      selectedTag: null,
       addTask: (task) => {
         const newTask: Task = {
           id: generateId(),
@@ -152,6 +166,37 @@ export const useTaskStore = create<TaskState>()(
           };
         });
       },
+      moveTask: (
+        taskId: string,
+        newOrderIds: string[],
+        updates?: Partial<Task>,
+      ) => {
+        set((state) => {
+          const taskMap = new Map(state.tasks.map((t) => [t.id, t]));
+          const reordered = newOrderIds
+            .map((id) => taskMap.get(id))
+            .filter((t): t is Task => !!t);
+
+          // Apply updates to the moved task if provided
+          if (updates) {
+            const movedTaskIndex = reordered.findIndex((t) => t.id === taskId);
+            if (movedTaskIndex !== -1) {
+              reordered[movedTaskIndex] = {
+                ...reordered[movedTaskIndex],
+                ...updates,
+                updatedAt: Date.now(),
+              };
+            }
+          }
+
+          const otherTasks = state.tasks.filter(
+            (t) => !newOrderIds.includes(t.id),
+          );
+          return {
+            tasks: [...reordered, ...otherTasks],
+          };
+        });
+      },
       cleanupCompletedTasks: () => {
         const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
         set((state) => ({
@@ -161,6 +206,47 @@ export const useTaskStore = create<TaskState>()(
             }
             return true;
           }),
+        }));
+      },
+      setSearchQuery: (query) => set({ searchQuery: query }),
+      setSelectedTag: (tag) => set({ selectedTag: tag }),
+      addTaskTag: (taskId, tag) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  tags: [...new Set([...(task.tags || []), tag.trim()])],
+                  updatedAt: Date.now(),
+                }
+              : task,
+          ),
+        }));
+      },
+      removeTaskTag: (taskId, tag) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  tags: (task.tags || []).filter((t) => t !== tag),
+                  updatedAt: Date.now(),
+                }
+              : task,
+          ),
+        }));
+      },
+      setTaskTags: (taskId, tags) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  tags: [...new Set(tags.map((t) => t.trim()))],
+                  updatedAt: Date.now(),
+                }
+              : task,
+          ),
         }));
       },
     }),

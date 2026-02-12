@@ -6,10 +6,15 @@ import { TaskItem } from "./TaskItem";
 
 interface MatrixViewProps {
   onTaskClick: (taskId: string) => void;
+  tasks?: Task[];
 }
 
-export const MatrixView: React.FC<MatrixViewProps> = ({ onTaskClick }) => {
-  const { tasks } = useTaskStore();
+export const MatrixView: React.FC<MatrixViewProps> = ({
+  onTaskClick,
+  tasks: propTasks,
+}) => {
+  const { tasks: storeTasks } = useTaskStore();
+  const tasks = propTasks ?? storeTasks;
   const todoTasks = tasks.filter((t) => t.status === "todo");
 
   const isUrgent = (task: Task) => {
@@ -52,11 +57,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({ onTaskClick }) => {
       </header>
       <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1">
         {tasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onClick={() => onTaskClick(task.id)}
-          />
+          <TaskItem key={task.id} task={task} onTaskClick={onTaskClick} />
         ))}
       </div>
     </div>
