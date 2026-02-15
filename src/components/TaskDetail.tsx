@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskPriority } from "@/types/todo";
 import clsx from "clsx";
@@ -38,14 +40,11 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
     deleteSubTask,
     deleteTask,
     toggleTaskStatus,
-    setTaskStatus,
     addTaskTag,
     removeTaskTag,
   } = useTaskStore();
   const task = tasks.find((t) => t.id === taskId);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [newSubTaskTitle, setNewSubTaskTitle] = useState("");
   const [newTag, setNewTag] = useState("");
   const [isTagInputFocused, setIsTagInputFocused] = useState(false);
@@ -75,25 +74,14 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
   }, [availableTags, newTag]);
 
   useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setDescription(task.description || "");
-    }
-  }, [task]);
-
-  useEffect(() => {
     if (titleTextareaRef.current) {
       titleTextareaRef.current.style.height = "auto";
       titleTextareaRef.current.style.height =
         titleTextareaRef.current.scrollHeight + "px";
     }
-  }, [title]);
+  }, [task?.title]);
 
   if (!task) return null;
-
-  const handleSave = () => {
-    updateTask(taskId, { title, description });
-  };
 
   const handleAddSubTask = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && newSubTaskTitle.trim()) {
@@ -193,12 +181,14 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
               </span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600"
           >
             <span className="material-symbols-outlined">close</span>
-          </button>
+          </Button>
         </header>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -206,9 +196,8 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
           <div>
             <textarea
               ref={titleTextareaRef}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={handleSave}
+              value={task.title}
+              onChange={(e) => updateTask(taskId, { title: e.target.value })}
               rows={1}
               className="w-full text-2xl font-semibold border-none p-0 focus:ring-0 placeholder:text-slate-300 outline-none resize-none overflow-hidden bg-transparent"
               placeholder="任务标题"
@@ -221,9 +210,10 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
               描述
             </label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={handleSave}
+              value={task.description || ""}
+              onChange={(e) =>
+                updateTask(taskId, { description: e.target.value })
+              }
               className="w-full min-h-[100px] text-sm text-slate-700 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-blue-500"
               placeholder="添加详情..."
             />
@@ -349,7 +339,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
               截止日期
             </label>
             <div className="relative">
-              <input
+              <Input
                 type="date"
                 value={
                   task.dueDate
@@ -362,7 +352,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                     : undefined;
                   updateTask(taskId, { dueDate: date });
                 }}
-                className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full"
+                className="w-full"
               />
             </div>
           </div>
@@ -419,15 +409,16 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
           <span className="text-xs text-slate-400">
             创建于 {new Date(task.createdAt).toLocaleDateString("zh-CN")}
           </span>
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={() => {
               deleteTask(taskId);
               onClose();
             }}
-            className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
           >
             删除任务
-          </button>
+          </Button>
         </footer>
       </div>
     </div>
