@@ -2,7 +2,7 @@ import { useTaskStore } from "@/store/useTaskStore";
 import { TaskPriority } from "@/types/todo";
 import clsx from "clsx";
 import { format } from "date-fns";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 interface TaskDetailProps {
   taskId: string;
@@ -38,6 +38,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
     deleteSubTask,
     deleteTask,
     toggleTaskStatus,
+    setTaskStatus,
     addTaskTag,
     removeTaskTag,
   } = useTaskStore();
@@ -48,6 +49,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
   const [newSubTaskTitle, setNewSubTaskTitle] = useState("");
   const [newTag, setNewTag] = useState("");
   const [isTagInputFocused, setIsTagInputFocused] = useState(false);
+  const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 获取所有已存在的标签
   const existingTags = useMemo(() => {
@@ -78,6 +80,14 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
       setDescription(task.description || "");
     }
   }, [task]);
+
+  useEffect(() => {
+    if (titleTextareaRef.current) {
+      titleTextareaRef.current.style.height = "auto";
+      titleTextareaRef.current.style.height =
+        titleTextareaRef.current.scrollHeight + "px";
+    }
+  }, [title]);
 
   if (!task) return null;
 
@@ -120,14 +130,68 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={task.status === "completed"}
-              onChange={() => toggleTaskStatus(taskId)}
-              className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm text-slate-500">标记为已完成</span>
+          <div className="flex items-center gap-4">
+            <div
+              className="flex items-center gap-2 cursor-pointer select-none group"
+              onClick={() => toggleTaskStatus(taskId)}
+            >
+              <div
+                className={clsx(
+                  "w-5 h-5 rounded-full border flex items-center justify-center transition-colors",
+                  task.status === "completed"
+                    ? "bg-blue-500 border-blue-500"
+                    : "border-slate-300 group-hover:border-blue-400",
+                )}
+              >
+                {task.status === "completed" && (
+                  <span className="material-symbols-outlined text-white text-[12px] font-bold">
+                    check
+                  </span>
+                )}
+              </div>
+              <span
+                className={clsx(
+                  "text-sm font-medium",
+                  task.status === "completed"
+                    ? "text-slate-400"
+                    : "text-slate-500",
+                )}
+              >
+                {task.status === "completed" ? "已完成" : "完成"}
+              </span>
+            </div>
+
+            <div className="w-px h-4 bg-slate-200"></div>
+
+            <div
+              className="flex items-center gap-2 cursor-pointer select-none group"
+              onClick={() =>
+                updateTask(taskId, { isInProgress: !task.isInProgress })
+              }
+            >
+              <div
+                className={clsx(
+                  "w-5 h-5 rounded-full border flex items-center justify-center transition-colors",
+                  task.isInProgress
+                    ? "bg-orange-50 border-orange-500"
+                    : "border-slate-300 group-hover:border-orange-400",
+                )}
+              >
+                {task.isInProgress && (
+                  <span className="material-symbols-outlined text-orange-500 text-[12px] font-bold">
+                    play_arrow
+                  </span>
+                )}
+              </div>
+              <span
+                className={clsx(
+                  "text-sm font-medium",
+                  task.isInProgress ? "text-orange-600" : "text-slate-500",
+                )}
+              >
+                {task.isInProgress ? "处理中" : "标记处理中"}
+              </span>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -140,11 +204,13 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Title */}
           <div>
-            <input
+            <textarea
+              ref={titleTextareaRef}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleSave}
-              className="w-full text-2xl font-semibold border-none p-0 focus:ring-0 placeholder:text-slate-300 outline-none"
+              rows={1}
+              className="w-full text-2xl font-semibold border-none p-0 focus:ring-0 placeholder:text-slate-300 outline-none resize-none overflow-hidden bg-transparent"
               placeholder="任务标题"
             />
           </div>
