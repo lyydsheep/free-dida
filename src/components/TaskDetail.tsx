@@ -1,6 +1,7 @@
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskPriority } from "@/types/todo";
 import clsx from "clsx";
+import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 
 interface TaskDetailProps {
@@ -67,7 +68,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
   const filteredAvailableTags = useMemo(() => {
     if (!newTag.trim()) return availableTags;
     return availableTags.filter((tag) =>
-      tag.toLowerCase().includes(newTag.toLowerCase())
+      tag.toLowerCase().includes(newTag.toLowerCase()),
     );
   }, [availableTags, newTag]);
 
@@ -178,7 +179,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                       className={clsx(
                         "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium",
                         color.bg,
-                        color.text
+                        color.text,
                       )}
                     >
                       {tag}
@@ -186,8 +187,17 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                         onClick={() => removeTaskTag(taskId, tag)}
                         className="hover:bg-black/10 rounded-full p-0.5 transition-colors"
                       >
-                        <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
-                          <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <svg
+                          className="w-3 h-3"
+                          viewBox="0 0 12 12"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M3 3L9 9M9 3L3 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
                         </svg>
                       </button>
                     </span>
@@ -205,7 +215,9 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyDown={handleAddTag}
                     onFocus={() => setIsTagInputFocused(true)}
-                    onBlur={() => setTimeout(() => setIsTagInputFocused(false), 200)}
+                    onBlur={() =>
+                      setTimeout(() => setIsTagInputFocused(false), 200)
+                    }
                     placeholder="添加标签，按回车确认"
                     className="flex-1 text-sm bg-transparent border-none p-0 focus:ring-0 placeholder:text-slate-400 outline-none"
                   />
@@ -227,7 +239,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                               className={clsx(
                                 "px-2 py-1 rounded-full text-xs font-medium transition-all hover:scale-105",
                                 color.bg,
-                                color.text
+                                color.text,
                               )}
                             >
                               {tag}
@@ -262,6 +274,30 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
                   {p.toUpperCase()}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Due Date */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
+              截止日期
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={
+                  task.dueDate
+                    ? format(new Date(task.dueDate), "yyyy-MM-dd")
+                    : ""
+                }
+                onChange={(e) => {
+                  const date = e.target.value
+                    ? new Date(e.target.value).getTime()
+                    : undefined;
+                  updateTask(taskId, { dueDate: date });
+                }}
+                className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full"
+              />
             </div>
           </div>
 
