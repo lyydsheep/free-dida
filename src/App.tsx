@@ -7,18 +7,18 @@ import { TaskSearch } from "@/components/TaskSearch";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Task } from "@/types/todo";
 import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
+    closestCenter,
+    DndContext,
+    DragEndEvent,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import clsx from "clsx";
 import { format, isToday, isTomorrow } from "date-fns";
@@ -71,11 +71,19 @@ function App() {
 
   const groupedTasks = useMemo(() => {
     const groups: { [key: string]: Task[] } = {};
-    const todoTasks = filteredTasks.filter((t) => t.status === "todo");
+    const todoTasks = filteredTasks.filter(
+      (t) => t.status === "todo" || t.status === "in_progress",
+    );
 
     todoTasks.forEach((task) => {
       let key = "其他";
-      if (groupBy === "priority") {
+      const isTaskInProgress =
+        task.status === "in_progress" ||
+        (task.status === "todo" && task.isInProgress);
+
+      if (isTaskInProgress) {
+        key = "处理中";
+      } else if (groupBy === "priority") {
         switch (task.priority) {
           case "p0":
             key = "紧急";
@@ -105,6 +113,9 @@ function App() {
     });
 
     const sortedKeys = Object.keys(groups).sort((a, b) => {
+      if (a === "处理中") return -1;
+      if (b === "处理中") return 1;
+
       if (groupBy === "priority") {
         const order = ["紧急", "高优先级", "普通", "无优先级"];
         return order.indexOf(a) - order.indexOf(b);
