@@ -1,5 +1,5 @@
 import { useTaskStore } from "@/store/useTaskStore";
-import { Task } from "@/types/todo";
+import { Task, TaskPriority } from "@/types/todo";
 import { isPast, isToday } from "date-fns";
 import React from "react";
 import { TaskItem } from "./TaskItem";
@@ -18,6 +18,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
   const todoTasks = tasks.filter((t) => t.status === "todo");
 
   const isUrgent = (task: Task) => {
+    if (task.priority === "p0" || task.priority === "p2") return true;
     if (!task.dueDate) return false;
     const date = new Date(task.dueDate);
     return isToday(date) || isPast(date);
@@ -27,10 +28,32 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
     return task.priority === "p0" || task.priority === "p1";
   };
 
-  const q1 = todoTasks.filter((t) => isImportant(t) && isUrgent(t)); // Important & Urgent
-  const q2 = todoTasks.filter((t) => isImportant(t) && !isUrgent(t)); // Important & Not Urgent
-  const q3 = todoTasks.filter((t) => !isImportant(t) && isUrgent(t)); // Not Important & Urgent
-  const q4 = todoTasks.filter((t) => !isImportant(t) && !isUrgent(t)); // Not Important & Not Urgent
+  const priorityWeight: Record<TaskPriority, number> = {
+    p0: 4,
+    p1: 3,
+    p2: 2,
+    none: 1,
+  };
+
+  const sortTasks = (tasks: Task[]) => {
+    return [...tasks].sort((a, b) => {
+      const weightA = priorityWeight[a.priority] ?? 0;
+      const weightB = priorityWeight[b.priority] ?? 0;
+      if (weightA !== weightB) {
+        return weightB - weightA;
+      }
+      const dateA = a.dueDate ?? Number.MAX_SAFE_INTEGER;
+      const dateB = b.dueDate ?? Number.MAX_SAFE_INTEGER;
+      return dateA - dateB;
+    });
+  };
+
+  const q1 = sortTasks(todoTasks.filter((t) => isImportant(t) && isUrgent(t))); // Important & Urgent
+  const q2 = sortTasks(todoTasks.filter((t) => isImportant(t) && !isUrgent(t))); // Important & Not Urgent
+  const q3 = sortTasks(todoTasks.filter((t) => !isImportant(t) && isUrgent(t))); // Not Important & Urgent
+  const q4 = sortTasks(
+    todoTasks.filter((t) => !isImportant(t) && !isUrgent(t)),
+  ); // Not Important & Not Urgent
 
   const Quadrant = ({
     title,
