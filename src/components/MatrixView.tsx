@@ -2,12 +2,74 @@ import { useTaskStore } from "@/store/useTaskStore";
 import { Task, TaskPriority } from "@/types/todo";
 import { isPast, isToday } from "date-fns";
 import React from "react";
-import { TaskItem } from "./TaskItem";
 
 interface MatrixViewProps {
   onTaskClick: (taskId: string) => void;
   tasks?: Task[];
 }
+
+const MatrixTaskCard = ({
+  task,
+  onTaskClick,
+}: {
+  task: Task;
+  onTaskClick: (taskId: string) => void;
+}) => {
+  const { toggleTaskStatus } = useTaskStore();
+
+  const getPriorityColor = (p: string) => {
+    switch (p) {
+      case "p0":
+        return "bg-red-500";
+      case "p1":
+        return "bg-orange-500";
+      case "p2":
+        return "bg-blue-500";
+      default:
+        return "bg-slate-300";
+    }
+  };
+
+  return (
+    <div
+      className="group flex items-center px-3 py-2 bg-white border border-slate-100 rounded-lg hover:shadow-md transition-all cursor-pointer h-[48px]"
+      onClick={() => onTaskClick(task.id)}
+      title={task.title}
+    >
+      <div
+        className={`w-1 h-6 rounded-full mr-3 ${getPriorityColor(
+          task.priority,
+        )}`}
+      ></div>
+
+      <div
+        className={`w-5 h-5 rounded-full border transition-all flex items-center justify-center mr-3 flex-shrink-0 ${
+          task.status === "completed"
+            ? "bg-blue-500 border-blue-500"
+            : "border-slate-300 hover:border-blue-400"
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleTaskStatus(task.id);
+        }}
+      >
+        {task.status === "completed" && (
+          <span className="material-symbols-outlined text-white text-[12px] font-bold">
+            check
+          </span>
+        )}
+      </div>
+
+      <span
+        className={`flex-1 text-sm text-slate-700 truncate font-medium ${
+          task.status === "completed" ? "line-through text-slate-400" : ""
+        }`}
+      >
+        {task.title}
+      </span>
+    </div>
+  );
+};
 
 export const MatrixView: React.FC<MatrixViewProps> = ({
   onTaskClick,
@@ -67,7 +129,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
     borderColor: string;
   }) => (
     <div
-      className={`flex-1 flex flex-col p-4 overflow-hidden ${color} relative`}
+      className={`flex-1 flex flex-col p-2 lg:p-4 overflow-hidden ${color} relative`}
     >
       <div className={`absolute top-0 left-0 w-full h-1 ${borderColor}`}></div>
       <header className="mb-2 flex justify-between items-center">
@@ -78,9 +140,9 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
           {tasks.length}
         </span>
       </header>
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 p-1">
         {tasks.map((task) => (
-          <TaskItem key={task.id} task={task} onTaskClick={onTaskClick} />
+          <MatrixTaskCard key={task.id} task={task} onTaskClick={onTaskClick} />
         ))}
       </div>
     </div>
@@ -88,14 +150,14 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
-      <div className="flex-1 flex border-b border-slate-100">
+      <div className="flex-1 flex flex-col lg:flex-row border-b border-slate-100">
         <Quadrant
           title="立即执行"
           tasks={q1}
           color="bg-red-50/30"
           borderColor="bg-red-400"
         />
-        <div className="w-px bg-slate-100"></div>
+        <div className="h-px w-full lg:w-px lg:h-auto bg-slate-100"></div>
         <Quadrant
           title="计划安排"
           tasks={q2}
@@ -103,14 +165,14 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
           borderColor="bg-blue-400"
         />
       </div>
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col lg:flex-row">
         <Quadrant
           title="委派他人"
           tasks={q3}
           color="bg-orange-50/30"
           borderColor="bg-orange-400"
         />
-        <div className="w-px bg-slate-100"></div>
+        <div className="h-px w-full lg:w-px lg:h-auto bg-slate-100"></div>
         <Quadrant
           title="尽量不做"
           tasks={q4}
