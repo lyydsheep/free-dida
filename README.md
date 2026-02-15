@@ -1,84 +1,86 @@
-# Free-Dida (简化版滴答清单)
+# Free-Dida (Simplified TickTick)
 
-Free-Dida 是一个轻量级、本地优先 (Local-First) 的个人任务管理应用 (PWA)。它旨在提供极简但高效的任务管理体验，结合了看板的直观性与时间线的连续性。
+[中文文档](./README.zh-CN.md)
 
-## ✨ 核心特性
+Free-Dida is a lightweight, Local-First personal task management application (PWA). It aims to provide a minimalist yet efficient task management experience, combining the intuitiveness of Kanban with the continuity of a timeline.
 
-- **📅 无限日历看板**: 独特的水平滚动日历视图，将看板与时间线完美融合。
-- **⚡️ 极致性能**: 基于 Local-First 架构，所有操作在内存中完成，秒级响应，离线可用。
-- **🧠 自然语言解析**: 支持智能输入（例如："明天下午3点开会 !p0"），自动识别时间与优先级。
-- **🎨 现代化 UI**: 采用 Tailwind CSS 构建，界面简洁美观，支持深色模式（计划中）。
-- **📱 PWA 支持**: 可安装到桌面或手机，提供类原生应用的体验。
+## ✨ Core Features
 
-## 🛠 技术栈
+- **📅 Infinite Calendar Kanban**: A unique horizontal scrolling calendar view that seamlessly blends Kanban with a timeline.
+- **⚡️ Extreme Performance**: Based on Local-First architecture, all operations are completed in memory, with instant response and offline availability.
+- **🧠 Natural Language Parsing**: Supports smart input (e.g., "Meeting tomorrow at 3 PM !p0"), automatically recognizing time and priority.
+- **🎨 Modern UI**: Built with Tailwind CSS, the interface is clean and beautiful, supporting dark mode (planned).
+- **📱 PWA Support**: Can be installed on desktop or mobile, providing a native-like app experience.
 
-- **前端框架**: React 18 + TypeScript
-- **构建工具**: Vite
-- **样式库**: Tailwind CSS + clsx + tailwind-merge
-- **状态管理**: Zustand
-- **持久化存储**: IndexedDB (idb-keyval)
-- **拖拽交互**: @dnd-kit
-- **图标库**: Lucide React
-- **日期处理**: date-fns
+## 🛠 Tech Stack
 
-## 🚀 快速开始
+- **Frontend Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + clsx + tailwind-merge
+- **State Management**: Zustand
+- **Persistence**: IndexedDB (idb-keyval)
+- **Drag & Drop**: @dnd-kit
+- **Icons**: Lucide React
+- **Date Handling**: date-fns
 
-### 环境要求
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Node.js >= 18
-- npm 或 yarn
+- npm or yarn
 
-### 安装与运行
+### Installation & Running
 
-1.  **克隆仓库**
+1.  **Clone the repository**
 
     ```bash
     git clone https://github.com/your-username/free-dida.git
     cd free-dida
     ```
 
-2.  **安装依赖**
+2.  **Install dependencies**
 
     ```bash
     npm install
     ```
 
-3.  **启动开发服务器**
+3.  **Start development server**
 
     ```bash
     npm run dev
     ```
 
-    打开浏览器访问 `http://localhost:5173` 即可看到应用。
+    Open your browser and visit `http://localhost:5173` to see the application.
 
-4.  **构建生产版本**
+4.  **Build for production**
 
     ```bash
     npm run build
     ```
 
-## 📂 项目结构
+## 📂 Project Structure
 
 ```
 free-dida/
-├── docs/               # 项目文档 (需求、设计)
+├── docs/               # Project documentation (requirements, design)
 ├── src/
-│   ├── components/     # UI 组件
-│   ├── store/          # Zustand 状态管理
-│   ├── types/          # TypeScript 类型定义
-│   ├── utils/          # 工具函数 (NLP, 日期处理等)
-│   ├── App.tsx         # 应用根组件
-│   └── main.tsx        # 入口文件
-├── index.html          # HTML 模板
-├── tailwind.config.js  # Tailwind 配置
-├── tsconfig.json       # TypeScript 配置
-└── vite.config.ts      # Vite 配置
+│   ├── components/     # UI components
+│   ├── store/          # Zustand state management
+│   ├── types/          # TypeScript type definitions
+│   ├── utils/          # Utility functions (NLP, date handling, etc.)
+│   ├── App.tsx         # App root component
+│   └── main.tsx        # Entry file
+├── index.html          # HTML template
+├── tailwind.config.js  # Tailwind configuration
+├── tsconfig.json       # TypeScript configuration
+└── vite.config.ts      # Vite configuration
 ```
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-## 📄 许可证
+## 📄 License
 
 MIT License
