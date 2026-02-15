@@ -27,6 +27,7 @@ interface TaskState {
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTaskStatus: (id: string) => void;
+  setTaskStatus: (id: string, status: Task["status"]) => void;
   addSubTask: (taskId: string, title: string) => void;
   toggleSubTask: (taskId: string, subTaskId: string) => void;
   deleteSubTask: (taskId: string, subTaskId: string) => void;
@@ -55,6 +56,7 @@ export const useTaskStore = create<TaskState>()(
           id: generateId(),
           title: task.title || "New Task",
           status: "todo",
+          isInProgress: false,
           priority: task.priority || "none",
           order: Date.now(),
           createdAt: Date.now(),
@@ -82,10 +84,36 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.map((task) => {
             if (task.id === id) {
-              const newStatus = task.status === "todo" ? "completed" : "todo";
+              const newStatus =
+                task.status === "completed" ? "todo" : "completed";
               return {
                 ...task,
                 status: newStatus,
+                isInProgress: false,
+                completedAt: newStatus === "completed" ? Date.now() : undefined,
+                updatedAt: Date.now(),
+              };
+            }
+            return task;
+          }),
+        }));
+      },
+      setTaskStatus: (id, status) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id === id) {
+              let newStatus = status;
+              let newIsInProgress = false;
+
+              if (status === "in_progress") {
+                newStatus = "todo";
+                newIsInProgress = true;
+              }
+
+              return {
+                ...task,
+                status: newStatus,
+                isInProgress: newIsInProgress,
                 completedAt: newStatus === "completed" ? Date.now() : undefined,
                 updatedAt: Date.now(),
               };
@@ -124,13 +152,28 @@ export const useTaskStore = create<TaskState>()(
               // Check if all subtasks are done
               const allDone =
                 newChecklist.length > 0 && newChecklist.every((st) => st.done);
-              const shouldComplete = allDone && task.status === "todo";
+              const anyDone = newChecklist.some((st) => st.done);
+
+              let newStatus = task.status;
+              let newIsInProgress = task.isInProgress;
+
+              if (allDone) {
+                newStatus = "completed";
+                newIsInProgress = false;
+              } else if (anyDone) {
+                newStatus = "todo";
+                newIsInProgress = true;
+              } else if (!anyDone && task.status === "completed") {
+                newStatus = "todo";
+                newIsInProgress = false;
+              }
 
               return {
                 ...task,
                 checklist: newChecklist,
-                status: shouldComplete ? "completed" : task.status,
-                completedAt: shouldComplete ? Date.now() : task.completedAt,
+                status: newStatus,
+                isInProgress: newIsInProgress,
+                completedAt: newStatus === "completed" ? Date.now() : undefined,
                 updatedAt: Date.now(),
               };
             }
