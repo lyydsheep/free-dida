@@ -335,7 +335,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose }) => {
               ))}
             </div>
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-slate-400 text-[20px]">
+              <span className="material-symbols-outlined text-slate-400 text-[16px] w-4 h-4 flex items-center justify-center">
                 add
               </span>
               <input
