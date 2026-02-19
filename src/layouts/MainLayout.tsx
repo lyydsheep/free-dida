@@ -78,7 +78,7 @@ export function MainLayout() {
           <TaskSearch />
         </header>
 
-        <main className="flex-1 overflow-hidden flex flex-col relative bg-white">
+        <main className="flex-1 min-h-0 overflow-hidden flex flex-col relative bg-white pb-[84px]">
           <Outlet context={{ calendarViewRef }} />
         </main>
 

@@ -4,22 +4,43 @@ import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useTaskGrouping } from "@/hooks/useTaskGrouping";
 import { useTaskStore } from "@/store/useTaskStore";
 import {
-    closestCenter,
-    DndContext,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { GroupedVirtuoso } from "react-virtuoso";
 
 export function ListView() {
+  const Scroller = useMemo(
+    () =>
+      React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+        ({ style, ...props }, ref) => (
+          <div
+            {...props}
+            ref={ref}
+            style={{
+              ...style,
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehaviorY: "contain",
+              touchAction: "pan-y",
+              paddingBottom: "calc(84px + 80px + env(safe-area-inset-bottom))",
+            }}
+          />
+        ),
+      ),
+    [],
+  );
+
   const {
     tasks,
     cleanupCompletedTasks,
@@ -103,7 +124,7 @@ export function ListView() {
   }
 
   return (
-    <>
+    <div className="flex-1 min-h-0 flex flex-col">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -114,40 +135,45 @@ export function ListView() {
           items={allTasks.map((t) => t.id)}
           strategy={verticalListSortingStrategy}
         >
-          <GroupedVirtuoso
-            style={{ height: "100%", flex: 1 }}
-            className="custom-scrollbar pb-32"
-            groupCounts={groupCounts}
-            groupContent={(index) => (
-              <div className="bg-white pt-6 pb-2 px-6">
-                <header className="flex items-center justify-between">
-                  <h2 className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                    {groupTitles[index]}
-                  </h2>
-                  <span className="text-[12px] text-slate-400 font-medium">
-                    {groupCounts[index]}
-                  </span>
-                </header>
-              </div>
-            )}
-            itemContent={(index) => {
-              const task = allTasks[index];
-              const isSortable = task.status !== "completed";
-              return (
-                <div className="px-6 py-0.5">
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onTaskClick={handleTaskClick}
-                    isSortable={isSortable}
-                  />
+          <div className="flex-1 min-h-0">
+            <GroupedVirtuoso
+              style={{ height: "100%" }}
+              components={{ Scroller }}
+              className="custom-scrollbar"
+              groupCounts={groupCounts}
+              groupContent={(index) => (
+                <div className="bg-white pt-6 pb-2 px-6">
+                  <header className="flex items-center justify-between">
+                    <h2 className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
+                      {groupTitles[index]}
+                    </h2>
+                    <span className="text-[12px] text-slate-400 font-medium">
+                      {groupCounts[index]}
+                    </span>
+                  </header>
                 </div>
-              );
-            }}
-          />
+              )}
+              itemContent={(index) => {
+                const task = allTasks[index];
+                const isSortable = task.status !== "completed";
+                return (
+                  <div className="px-6 py-0.5">
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onTaskClick={handleTaskClick}
+                      isSortable={isSortable}
+                    />
+                  </div>
+                );
+              }}
+            />
+          </div>
         </SortableContext>
       </DndContext>
-      <TaskInput />
-    </>
+      <div className="shrink-0 px-6 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] bg-white border-t border-slate-50">
+        <TaskInput />
+      </div>
+    </div>
   );
 }

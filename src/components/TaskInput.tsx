@@ -15,7 +15,7 @@ export const TaskInput: React.FC = () => {
   };
 
   return (
-    <div className="absolute bottom-[84px] left-0 right-0 px-6 z-20">
+    <div>
       <div className="flex items-center bg-white shadow-xl shadow-slate-200/50 border border-slate-100 rounded-2xl px-4 py-1.5 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
         <span className="material-symbols-outlined text-slate-400 mr-2">
           add
