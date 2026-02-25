@@ -14,7 +14,7 @@ export const TaskSchema = z.object({
   description: z.string().optional(),
   status: z.enum(["todo", "in_progress", "completed"]),
   isInProgress: z.boolean().optional(),
-  priority: z.enum(["p0", "p1", "p2", "none"]),
+  priority: z.enum(["p0", "p1", "p2", "none"]).default("none"),
   order: z.number(),
   dueDate: z.number().optional(),
   isAllDay: z.boolean().optional(),
